@@ -1,0 +1,247 @@
+table Sales
+	lineageTag: e86ea079-c57a-4c9d-beac-c74ad3784b51
+
+	measure 'Total Sales' = SUM(Sales[Sales])
+		formatString: \$#,0;-\$#,0;\$#,0
+		lineageTag: f1417a62-bc6d-4cf9-b879-dbca7cf5ab95
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	measure 'Total Profit' = SUM(Sales[Profit])
+		formatString: \$#,0;-\$#,0;\$#,0
+		lineageTag: 207fe2a9-f8d3-421b-a7ce-d370dc528824
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	measure 'Profit Margin' = DIVIDE([Total Profit], [Total Sales])
+		formatString: 0.0%
+		lineageTag: 9f3abb07-c7eb-4545-be3d-f339b63453ef
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	measure Orders = DISTINCTCOUNT(Sales[Order ID])
+		formatString: #,0
+		lineageTag: 8b88d631-54be-4d54-83ae-c8f24ee56c90
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	measure 'Sales LY' = CALCULATE([Total Sales], SAMEPERIODLASTYEAR('Date'[Date]))
+		formatString: \$#,0;-\$#,0;\$#,0
+		lineageTag: 39af5b62-42f6-4f21-aca9-e134e8432ae5
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	measure 'Sales YoY %' = DIVIDE([Total Sales] - [Sales LY], [Sales LY])
+		formatString: ▲ 0.0%;▼ 0.0%;0.0%
+		lineageTag: 978c34ba-cc90-4dc4-993b-e26e5b83e5fc
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	measure 'Profit LY' = CALCULATE([Total Profit],SAMEPERIODLASTYEAR('Date'[Date]))
+		formatString: \$#,0;-\$#,0;\$#,0
+		lineageTag: d3fd9ffa-53ff-42ca-9453-24951892edca
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	measure 'Profit YoY %' = DIVIDE([Total Profit]-[Profit LY],[Profit LY])
+		formatString: ▲ 0.0%;▼ 0.0%;0.0%
+		lineageTag: d3564fd7-fbbb-4906-af2b-906cc652e03e
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	measure 'Avg Discount' = AVERAGE(Sales[Discount])
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: 29d77b10-7595-4cc6-b52a-bf6fa9ee4003
+
+	measure 'Trend Subtitle' =
+			
+			VAR Yil = SELECTEDVALUE( 'Date'[Year], "all years" )
+			VAR Oylar = [Months Ahead]
+			RETURN
+			    "Monthly sales, " & Yil & " vs last year"
+			        & IF(
+			            NOT( ISBLANK( Oylar ) ),
+			            " · " & Yil & " ahead in " & Oylar & " of 12 months"
+			        )
+		lineageTag: 088527f7-28d6-46dd-9347-7492fb9e8389
+
+	measure 'Months Ahead' =
+			
+			COUNTROWS(
+			    FILTER(
+			        VALUES( 'Date'[Month No] ),
+			        NOT( ISBLANK( [Sales LY] ) ) && [Total Sales] > [Sales LY]
+			    )
+			)
+		formatString: 0
+		lineageTag: 7cd1b00f-e77c-439b-a17c-83fff1afd82c
+
+	measure 'Loss Subcats Title' =
+			
+			VAR SelYear = SELECTEDVALUE( 'Date'[Year] )
+			VAR Losers  = FILTER( VALUES( Products[Sub-Category] ), [Total Profit] < 0 )
+			VAR List    = CONCATENATEX( Losers, Products[Sub-Category], ", " )
+			RETURN
+			    IF( ISBLANK( List ) || List = "",
+			        "No sub-category lost money in " & SelYear,
+			        "Loss-making in " & SelYear & ": " & List )
+		lineageTag: 44f10c23-41bb-4b0b-ad6e-3634dc1b697c
+
+	measure 'Orders LY' = CALCULATE([Orders], SAMEPERIODLASTYEAR('Date'[Date]))
+		formatString: #,0
+		lineageTag: ede0b94e-9d38-49be-8da9-ab7ea11833fb
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	measure 'Orders YoY %' = DIVIDE([Orders]-[Orders LY],[Orders LY])
+		formatString: ▲ 0.0%;▼ 0.0%;0.0%
+		lineageTag: 6a9e9d94-df7d-4ea4-9bc8-4e707692f629
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	measure 'Margin LY' = CALCULATE([Profit Margin], SAMEPERIODLASTYEAR('Date'[Date]))
+		formatString: 0.0%
+		lineageTag: 27509028-f9b3-4834-bd23-c0eae7f8e140
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	measure 'Margin Change pp' =
+			
+			IF( ISBLANK( [Margin LY] ), BLANK(), ( [Profit Margin] - [Margin LY] ) * 100 )
+		formatString: ▲ 0.0" pp";▼ 0.0" pp";0.0" pp"
+		lineageTag: f05bfde0-dc7b-4d4e-a3d4-d115acb1fefb
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	column Discount
+		dataType: double
+		formatString: 0%;-0%;0%
+		lineageTag: f9395517-84b9-42ed-b0c3-d2a7d372ff1e
+		summarizeBy: sum
+		sourceColumn: Discount
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Ship days'
+		dataType: int64
+		formatString: 0
+		lineageTag: 471a289e-94c6-4343-8ae4-98a1dec6ed3f
+		summarizeBy: sum
+		sourceColumn: Ship days
+
+		annotation SummarizationSetBy = Automatic
+
+	column Quantity
+		dataType: int64
+		formatString: 0
+		lineageTag: f0334771-b4a3-4b9c-874a-2fbd7d313b64
+		summarizeBy: sum
+		sourceColumn: Quantity
+
+		annotation SummarizationSetBy = Automatic
+
+	column Profit
+		dataType: double
+		lineageTag: 070a951d-bb64-4305-86e8-584dc56615f5
+		summarizeBy: sum
+		sourceColumn: Profit
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column Sales
+		dataType: double
+		lineageTag: 62247674-dce6-4987-ab34-bdcc1d934616
+		summarizeBy: sum
+		sourceColumn: Sales
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Ship Mode'
+		dataType: string
+		lineageTag: cff7c9f4-06af-4d51-874b-4258124516a2
+		summarizeBy: none
+		sourceColumn: Ship Mode
+
+		annotation SummarizationSetBy = Automatic
+
+	column CIty_state
+		dataType: string
+		lineageTag: 8f79ae46-b075-4ff3-9a62-4c3ddac6b05b
+		summarizeBy: none
+		sourceColumn: CIty_state
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Product key'
+		dataType: string
+		lineageTag: e55aec09-e9d5-4f2a-94fe-bb22fc610131
+		summarizeBy: none
+		sourceColumn: Product key
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Customer ID'
+		dataType: string
+		lineageTag: af4f582a-5f5a-4218-ae1e-a99cca237a28
+		summarizeBy: none
+		sourceColumn: Customer ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Ship Date'
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 8b8c4d3c-e6e4-4bd9-99b2-fec9b25a9fe3
+		summarizeBy: none
+		sourceColumn: Ship Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Order Date'
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 70daf394-6852-45c9-8f08-2df20a56a5f4
+		summarizeBy: none
+		sourceColumn: Order Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Order ID'
+		dataType: string
+		lineageTag: 3e5f9b78-7f7e-4161-87f1-274751d300f5
+		summarizeBy: none
+		sourceColumn: Order ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Row ID'
+		dataType: int64
+		formatString: 0
+		lineageTag: 76a67b31-2c57-4ccf-93a7-b0c8fcd3a7b8
+		summarizeBy: count
+		sourceColumn: Row ID
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Sales = m
+		mode: import
+		source =
+				let
+				    Source = Staging,
+				    #"Reordered Columns" = Table.ReorderColumns(Source,{"Row ID", "Order ID", "Order Date", "Ship Date", "Customer ID", "Product key", "CIty_state", "Ship Mode", "Sales", "Profit", "Quantity", "Ship days", "Discount", "Segment", "Country", "City", "State", "Region", "Product ID", "Product Name", "Category", "Sub-Category"}),
+				    #"Removed Other Columns" = Table.SelectColumns(#"Reordered Columns",{"Discount", "Ship days", "Quantity", "Profit", "Sales", "Ship Mode", "CIty_state", "Product key", "Customer ID", "Ship Date", "Order Date", "Order ID", "Row ID"})
+				in
+				    #"Removed Other Columns"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

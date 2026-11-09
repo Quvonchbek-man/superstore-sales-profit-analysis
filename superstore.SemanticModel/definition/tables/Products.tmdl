@@ -1,0 +1,80 @@
+table Products
+	lineageTag: cef2ea97-f9a5-4b8a-bdd1-cd97838ca3a2
+
+	measure 'Top Product Title' =
+			
+			VAR SelYear   = SELECTEDVALUE( 'Date'[Year] )
+			VAR TopTable  = TOPN( 1, VALUES( Products[Product Name] ), [Total Profit], DESC )
+			VAR TopName   = CONCATENATEX( TopTable, Products[Product Name] )
+			VAR TopProfit = MAXX( TopTable, [Total Profit] )
+			RETURN
+			    "Top product in " & SelYear & ": " & TopName
+			        & " (" & FORMAT( TopProfit, "$#,0" ) & ")"
+		lineageTag: 5f9bfd30-89ae-4bee-9ad8-74afcf807461
+
+	measure 'Bottom Product Title' =
+			
+			VAR SelYear    = SELECTEDVALUE( 'Date'[Year] )
+			VAR Sold       = FILTER( VALUES( Products[Product Name] ), NOT ISBLANK( [Total Profit] ) )
+			VAR BotTable   = TOPN( 1, Sold, [Total Profit], ASC )
+			VAR BotName    = CONCATENATEX( BotTable, Products[Product Name] )
+			VAR BotProfit  = MAXX( BotTable, [Total Profit] )
+			RETURN
+			    "Biggest loss in " & SelYear & ": " & BotName
+			        & " (" & FORMAT( BotProfit, "$#,0" ) & ")"
+		lineageTag: 8a2f7129-7eaf-41c5-a922-81383c8505c2
+
+	column 'Product ID'
+		dataType: string
+		lineageTag: ce527143-bca6-4b95-817a-1e8845bf49cf
+		summarizeBy: none
+		sourceColumn: Product ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Product Name'
+		dataType: string
+		lineageTag: 494df508-de37-4df8-8e62-36cfa67af577
+		summarizeBy: none
+		sourceColumn: Product Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column Category
+		dataType: string
+		lineageTag: 35edec69-0f18-46f7-bff7-9faa8e524a93
+		summarizeBy: none
+		sourceColumn: Category
+
+		annotation SummarizationSetBy = Automatic
+
+	column Sub-Category
+		dataType: string
+		lineageTag: 15b9bd81-045b-478c-a012-da0ab9bd27b0
+		summarizeBy: none
+		sourceColumn: Sub-Category
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Product key'
+		dataType: string
+		lineageTag: 9b6227dd-2047-45be-b7c5-1d3475af75a0
+		summarizeBy: none
+		sourceColumn: Product key
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Products = m
+		mode: import
+		source =
+				let
+				    Source = Staging,
+				    #"Removed Other Columns" = Table.SelectColumns(Source,{"Product ID", "Product Name", "Category", "Sub-Category", "Product key"}),
+				    #"Removed Duplicates" = Table.Distinct(#"Removed Other Columns")
+				in
+				    #"Removed Duplicates"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

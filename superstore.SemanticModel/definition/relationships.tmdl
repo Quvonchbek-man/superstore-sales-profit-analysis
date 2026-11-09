@@ -1,0 +1,16 @@
+relationship AutoDetected_b164ccad-aea2-46a7-b31c-832bf174e29d
+	fromColumn: Sales.'Customer ID'
+	toColumn: Customers.'Customer ID'
+
+relationship AutoDetected_9b0e233a-780a-45ac-82f9-0201df63d659
+	fromColumn: Sales.CIty_state
+	toColumn: Locations.CIty_state
+
+relationship AutoDetected_471b8055-84ee-4530-b750-7ad846acfda5
+	fromColumn: Sales.'Product key'
+	toColumn: Products.'Product key'
+
+relationship 9ef6553b-15eb-5a1c-8af9-d4002ed3e551
+	fromColumn: Sales.'Order Date'
+	toColumn: Date.Date
+

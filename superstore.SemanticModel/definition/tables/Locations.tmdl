@@ -1,0 +1,57 @@
+table Locations
+	lineageTag: 924410de-c34a-42ff-82b9-68ad17e93587
+
+	column City
+		dataType: string
+		lineageTag: 06339a99-662a-4e26-8a1b-0a6dd78db4d1
+		summarizeBy: none
+		sourceColumn: City
+
+		annotation SummarizationSetBy = Automatic
+
+	column Country
+		dataType: string
+		lineageTag: ca013175-74d9-4a51-ac96-111fc90cb038
+		summarizeBy: none
+		sourceColumn: Country
+
+		annotation SummarizationSetBy = Automatic
+
+	column State
+		dataType: string
+		lineageTag: 629d7f68-d9a9-43ba-b173-2d36e16214ba
+		summarizeBy: none
+		sourceColumn: State
+
+		annotation SummarizationSetBy = Automatic
+
+	column Region
+		dataType: string
+		lineageTag: 6ef54eea-f9cf-4bb4-83dd-5a2887254ff3
+		summarizeBy: none
+		sourceColumn: Region
+
+		annotation SummarizationSetBy = Automatic
+
+	column CIty_state
+		dataType: string
+		lineageTag: 49e238de-daaf-4c0d-ae26-1f97d37e0010
+		summarizeBy: none
+		sourceColumn: CIty_state
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Locations = m
+		mode: import
+		source =
+				let
+				    Source = Staging,
+				    #"Removed Other Columns" = Table.SelectColumns(Source,{"City", "Country", "State", "Region", "CIty_state"}),
+				    #"Removed Duplicates" = Table.Distinct(#"Removed Other Columns")
+				in
+				    #"Removed Duplicates"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

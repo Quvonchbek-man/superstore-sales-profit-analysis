@@ -1,0 +1,51 @@
+table Date
+	lineageTag: 3bbdb91f-c935-4338-ba44-37c068e02593
+	dataCategory: Time
+
+	column Date
+		isKey
+		formatString: dd/mm/yyyy
+		lineageTag: 1415cee3-0fb2-4643-ac47-ecf7893291c3
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Date]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+		annotation PBI_FormatHint = {"isDateTimeCustom":true}
+
+	column Year = YEAR('Date'[Date])
+		formatString: 0
+		lineageTag: 4cbcfcfb-70db-4c72-b6a9-fc9651ac1402
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Month No' = MONTH('Date'[Date])
+		formatString: 0
+		lineageTag: f0e9d763-e473-41c5-a0d9-83fab83bf4e9
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column Month = FORMAT('Date'[Date], "MMMM")
+		lineageTag: 730ce6dd-b456-4eae-88cc-7b0933688873
+		summarizeBy: none
+		sortByColumn: 'Month No'
+
+		annotation SummarizationSetBy = Automatic
+
+	column Quarter = "Q" & QUARTER('Date'[Date])
+		lineageTag: 46f3a880-386c-4144-994b-ac65adcee60d
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Date = calculated
+		mode: import
+		source = CALENDAR(DATE(2014,1,1),DATE(2018,12,31))
+
+	annotation PBI_Id = f96610588b7945a8b143c5b7f30d283b
+

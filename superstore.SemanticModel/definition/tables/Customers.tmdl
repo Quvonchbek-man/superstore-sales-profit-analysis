@@ -1,0 +1,51 @@
+table Customers
+	lineageTag: d24a16ed-8ae0-4f4d-94f5-917ecde49835
+
+	measure Customers = DISTINCTCOUNT(Sales[Customer ID])
+		formatString: #,0
+		lineageTag: 2a0b8ecb-7db8-49a8-9fa3-e4c4c79cdc27
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	measure 'Customers LY' = CALCULATE([Customers], SAMEPERIODLASTYEAR('Date'[Date]))
+		formatString: #,0
+		lineageTag: 8ac24eb2-6498-4d3c-8144-6abcaa3f2660
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	measure 'Customers YoY %' = DIVIDE([Customers]-[Customers LY],[Customers LY])
+		formatString: ▲ 0.0%;▼ 0.0%;0.0%
+		lineageTag: 0aa382e0-7b34-4347-8c6b-4ea7b697a63b
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	column 'Customer ID'
+		dataType: string
+		lineageTag: 54af96b7-850b-4dd0-a169-0b677a76f5ab
+		summarizeBy: none
+		sourceColumn: Customer ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column Segment
+		dataType: string
+		lineageTag: e8e81a17-7605-430a-9f4f-4558e0b2209f
+		summarizeBy: none
+		sourceColumn: Segment
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Customers = m
+		mode: import
+		source =
+				let
+				    Source = Staging,
+				    #"Removed Other Columns" = Table.SelectColumns(Source,{"Customer ID", "Segment"}),
+				    #"Removed Duplicates" = Table.Distinct(#"Removed Other Columns")
+				in
+				    #"Removed Duplicates"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

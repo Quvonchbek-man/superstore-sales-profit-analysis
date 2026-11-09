@@ -1,0 +1,20 @@
+expression Staging =
+		let
+		    Source = Csv.Document(File.Contents("D:\Claude\powerbi\Sample_ Superstore.csv"),[Delimiter=",", Columns=19, Encoding=65001, QuoteStyle=QuoteStyle.None]),
+		    #"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+		    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{{"Row ID", Int64.Type}, {"Order ID", type text}, {"Order Date", type date}, {"Ship Date", type date}, {"Ship Mode", type text}, {"Customer ID", type text}, {"Segment", type text}, {"Country", type text}, {"City", type text}, {"State", type text}, {"Region", type text}, {"Product ID", type text}, {"Category", type text}, {"Sub-Category", type text}, {"Product Name", type text}, {"Sales", type number}, {"Quantity", Int64.Type}, {"Discount", type number}, {"Profit", type number}}),
+		    #"Reordered Columns" = Table.ReorderColumns(#"Changed Type",{"Row ID", "Customer ID", "Order ID", "Order Date", "Ship Date", "Ship Mode", "Segment", "Country", "City", "State", "Region", "Product ID", "Category", "Sub-Category", "Product Name", "Sales", "Quantity", "Discount", "Profit"}),
+		    #"Inserted Date Subtraction" = Table.AddColumn(#"Reordered Columns", "Ship days", each Duration.Days([Ship Date] - [Order Date]), Int64.Type),
+		    #"Reordered Columns1" = Table.ReorderColumns(#"Inserted Date Subtraction",{"Row ID", "Customer ID", "Order ID", "Order Date", "Ship Date", "Ship Mode", "Segment", "Country", "State", "Region", "City", "Sales", "Profit", "Product ID", "Product Name", "Category", "Sub-Category", "Quantity", "Discount", "Ship days"}),
+		    #"Removed Duplicates" = Table.Distinct(#"Reordered Columns1", {"Customer ID", "Order ID", "Order Date", "Ship Date", "Ship Mode", "Segment", "Country", "State", "Region", "City", "Sales", "Profit", "Product ID", "Product Name", "Category", "Sub-Category", "Quantity", "Discount", "Ship days"}),
+		    #"Reordered Columns2" = Table.ReorderColumns(#"Removed Duplicates",{"Row ID", "Customer ID", "Order ID", "Order Date", "Ship Date", "Ship Mode", "Segment", "Country", "City", "State", "Region", "Sales", "Profit", "Product ID", "Product Name", "Category", "Sub-Category", "Quantity", "Discount", "Ship days"}),
+		    #"Inserted Merged Column" = Table.AddColumn(#"Reordered Columns2", "CIty_state", each Text.Combine({[City], [State]}, ", "), type text),
+		    #"Inserted Merged Column1" = Table.AddColumn(#"Inserted Merged Column", "Product key", each Text.Combine({[Product ID], [Product Name]}, " |"), type text)
+		in
+		    #"Inserted Merged Column1"
+	lineageTag: b5bbc487-fff3-423b-bb3c-0d36067fa6ba
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
